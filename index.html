@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>💰 记账本</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, sans-serif; background: #f5f5f5; color: #333; max-width: 480px; margin: 0 auto; padding: 16px; }
+.header { text-align: center; padding: 20px 0; }
+.header h1 { font-size: 24px; color: #1a1a2e; }
+.header p { color: #666; font-size: 14px; margin-top: 4px; }
+.card { background: #fff; border-radius: 16px; padding: 20px; margin-bottom: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+.form-row { display: flex; gap: 10px; margin-bottom: 12px; }
+.form-row select, .form-row input { flex: 1; padding: 12px; border: 1px solid #ddd; border-radius: 10px; font-size: 16px; }
+.btn-row { display: flex; gap: 10px; }
+.btn { flex: 1; padding: 14px; border: none; border-radius: 10px; font-size: 16px; font-weight: 600; cursor: pointer; }
+.btn-primary { background: #4a6cf7; color: #fff; }
+.btn-danger { background: #ff4757; color: #fff; }
+.btn-outline { background: #f0f0f0; color: #333; }
+.stats { display: flex; gap: 12px; }
+.stat { flex: 1; text-align: center; padding: 12px; border-radius: 12px; }
+.stat-income { background: #e8f5e9; }
+.stat-expense { background: #fbe9e7; }
+.stat-balance { background: #e3f2fd; }
+.stat-label { font-size: 12px; color: #666; }
+.stat-value { font-size: 20px; font-weight: 700; margin-top: 4px; }
+.records { list-style: none; }
+.record { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #f0f0f0; }
+.record:last-child { border-bottom: none; }
+.record-info { display: flex; align-items: center; gap: 10px; }
+.record-icon { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+.record-icon.income { background: #e8f5e9; }
+.record-icon.expense { background: #fbe9e7; }
+.record-cat { font-size: 14px; font-weight: 600; }
+.record-note { font-size: 12px; color: #999; }
+.record-amt { font-weight: 700; }
+.record-amt.income { color: #2e7d32; }
+.record-amt.expense { color: #c62828; }
+.record-del { color: #ccc; cursor: pointer; padding: 4px; font-size: 18px; }
+.empty { text-align: center; color: #999; padding: 40px 0; font-size: 14px; }
+.quick-btns { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+.quick-btns button { padding: 6px 14px; border: 1px solid #ddd; border-radius: 20px; background: #fff; font-size: 14px; cursor: pointer; }
+.quick-btns button.active { background: #4a6cf7; color: #fff; border-color: #4a6cf7; }
+.tabs { display: flex; margin-bottom: 16px; }
+.tab { flex: 1; text-align: center; padding: 10px; cursor: pointer; border-bottom: 2px solid transparent; font-weight: 600; color: #999; }
+.tab.active { color: #4a6cf7; border-bottom-color: #4a6cf7; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>💰 记账本</h1>
+  <p>极简记账 · 数据存本地</p>
+</div>
+
+<div class="card stats" id="stats"></div>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab('record')">记账</div>
+  <div class="tab" onclick="switchTab('list')">账单</div>
+</div>
+
+<div id="tab-record">
+  <div class="card">
+    <div class="form-row">
+      <select id="type">
+        <option value="expense">支出</option>
+        <option value="income">收入</option>
+      </select>
+      <input type="number" id="amount" placeholder="金额" step="0.01">
+    </div>
+    <div class="quick-btns" id="quickAmt">
+      <button>10</button><button>20</button><button>25</button>
+      <button>50</button><button>100</button><button>200</button><button>500</button>
+    </div>
+    <div class="quick-btns" id="quickCat">
+      <button>餐饮</button><button>交通</button><button>购物</button>
+      <button>娱乐</button><button>日用</button><button>工资</button>
+    </div>
+    <input type="text" id="note" placeholder="备注（选填）" style="width:100%;padding:12px;border:1px solid #ddd;border-radius:10px;font-size:16px;margin-bottom:12px;">
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="addRecord()">✓ 记一笔</button>
+    </div>
+  </div>
+
+  <div class="card" id="recentRecords">
+    <h3 style="margin-bottom:12px;font-size:16px;">📋 最近记录</h3>
+    <div id="recordsList"></div>
+  </div>
+</div>
+
+<div id="tab-list" style="display:none">
+  <div class="card">
+    <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;">
+      <button class="btn btn-outline" style="flex:0;padding:8px 16px;font-size:14px;" onclick="filterDays(3)">近3天</button>
+      <button class="btn btn-outline" style="flex:0;padding:8px 16px;font-size:14px;" onclick="filterDays(7)">近7天</button>
+      <button class="btn btn-outline" style="flex:0;padding:8px 16px;font-size:14px;" onclick="filterDays(30)">本月</button>
+      <button class="btn btn-outline" style="flex:0;padding:8px 16px;font-size:14px;" onclick="filterDays(0)">全部</button>
+    </div>
+    <div id="allRecords"></div>
+  </div>
+</div>
+
+<script>
+const DB_KEY = 'expense_tracker_data';
+let data = JSON.parse(localStorage.getItem(DB_KEY) || '{"records":[],"budgets":{}}');
+let filterDays = 7;
+
+function save() { localStorage.setItem(DB_KEY, JSON.stringify(data)); }
+
+function getRecords() {
+  let records = data.records;
+  if (filterDays > 0) {
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() - filterDays);
+    records = records.filter(r => new Date(r.date) >= cutoff);
+  }
+  return records.sort((a,b) => new Date(b.date) - new Date(a.date));
+}
+
+function renderStats() {
+  const records = getRecords();
+  const income = records.filter(r => r.type === 'income').reduce((s,r) => s+r.amount, 0);
+  const expense = records.filter(r => r.type === 'expense').reduce((s,r) => s+r.amount, 0);
+  document.getElementById('stats').innerHTML = `
+    <div class="stat stat-income"><div class="stat-label">📤 收入</div><div class="stat-value">¥${income.toFixed(0)}</div></div>
+    <div class="stat stat-expense"><div class="stat-label">💸 支出</div><div class="stat-value">¥${expense.toFixed(0)}</div></div>
+    <div class="stat stat-balance"><div class="stat-label">💰 结余</div><div class="stat-value">¥${(income-expense).toFixed(0)}</div></div>
+  `;
+}
+
+function renderRecords() {
+  const records = getRecords().slice(0, 50);
+  const container = document.getElementById('allRecords');
+  if (records.length === 0) {
+    container.innerHTML = '<div class="empty">📭 暂无记录</div>';
+    return;
+  }
+  container.innerHTML = '<ul class="records">' + records.map(r => {
+    const icon = r.type === 'income' ? '📤' : '💸';
+    const cls = r.type === 'income' ? 'income' : 'expense';
+    const sign = r.type === 'income' ? '+' : '-';
+    const date = r.date.slice(0, 10);
+    return `<li class="record">
+      <div class="record-info">
+        <div class="record-icon ${cls}">${icon}</div>
+        <div>
+          <div class="record-cat">${r.category} <span style="font-weight:400;font-size:12px;color:#999">${date}</span></div>
+          <div class="record-note">${r.note || ''}</div>
+        </div>
+      </div>
+      <div><span class="record-amt ${cls}">${sign}¥${r.amount.toFixed(2)}</span>
+      <span class="record-del" onclick="deleteRecord(${r.id})">✕</span></div>
+    </li>`;
+  }).join('') + '</ul>';
+}
+
+function addRecord() {
+  const type = document.getElementById('type').value;
+  const amount = parseFloat(document.getElementById('amount').value);
+  const category = document.querySelector('#quickCat button.active')?.textContent || '';
+  const note = document.getElementById('note').value;
+
+  if (!amount || amount <= 0 || !category) { alert('请填写金额并选择分类'); return; }
+
+  data.records.push({
+    id: Date.now(),
+    type, amount, category, note,
+    date: new Date().toISOString().slice(0, 16).replace('T', ' ')
+  });
+  save();
+  document.getElementById('amount').value = '';
+  document.getElementById('note').value = '';
+  document.querySelectorAll('#quickAmt button,#quickCat button').forEach(b => b.classList.remove('active'));
+  refresh();
+}
+
+function deleteRecord(id) {
+  if (!confirm('删除这条记录？')) return;
+  data.records = data.records.filter(r => r.id !== id);
+  save();
+  refresh();
+}
+
+function filterDays(n) { filterDays = n; refresh(); }
+
+function quickSelect(el, group) {
+  document.querySelectorAll(`#${group} button`).forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  if (group === 'quickAmt') document.getElementById('amount').value = el.textContent;
+  if (group === 'quickCat') { /* cat already set */ }
+}
+
+function switchTab(tab) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('tab-record').style.display = tab === 'record' ? 'block' : 'none';
+  document.getElementById('tab-list').style.display = tab === 'list' ? 'block' : 'none';
+  document.querySelector(`.tab[onclick*="${tab}"]`).classList.add('active');
+}
+
+function refresh() {
+  renderStats();
+  renderRecords();
+  // 最近记录
+  const recent = [...data.records].sort((a,b) => new Date(b.date) - new Date(a.date)).slice(0, 5);
+  document.getElementById('recordsList').innerHTML = recent.length === 0
+    ? '<div class="empty">今天还没记账</div>'
+    : '<ul class="records">' + recent.map(r => `<li class="record">
+      <div><span style="font-size:12px;color:#999">${r.date.slice(5,10)}</span>
+      <span style="font-weight:600">${r.category}</span>
+      ${r.note ? '<span style="font-size:12px;color:#999">- ' + r.note + '</span>' : ''}</div>
+      <div style="font-weight:700;color:${r.type==='income'?'#2e7d32':'#c62828'}">
+        ${r.type==='income'?'+':'-'}¥${r.amount.toFixed(2)}</div>
+    </li>`).join('') + '</ul>';
+}
+
+// 初始化快速按钮
+document.querySelectorAll('#quickAmt button').forEach(b => b.onclick = function(){ quickSelect(this, 'quickAmt'); });
+document.querySelectorAll('#quickCat button').forEach(b => b.onclick = function(){ quickSelect(this, 'quickCat'); });
+
+refresh();
+</script>
+</body>
+</html>
