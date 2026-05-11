@@ -1,0 +1,13 @@
+{
+  "name": "💰 记账本",
+  "short_name": "记账本",
+  "description": "极简记账工具",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f5f5f5",
+  "theme_color": "#4a6cf7",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}
