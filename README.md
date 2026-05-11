@@ -1,41 +1,74 @@
 # 💰 Expense Tracker - 极简记账工具
 
-一个命令行记账工具，轻量、无依赖、数据存本地 JSON 文件。
+[![Python](https://img.shields.io/badge/Python-3.6%2B-blue)](https://python.org)
+[![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
 
-## 功能
+一个纯 Python 的命令行记账工具，零依赖，数据存本地 JSON 文件。
 
-- ✅ 记一笔账（收入/支出）
-- ✅ 查看账单列表
-- ✅ 查看月/周统计
-- ✅ 分类汇总
-- ✅ 数据导出
+## ✨ 功能
 
-## 快速开始
+| 功能 | 命令 |
+|------|------|
+| 💸 记支出 | `add -a 25 -c 餐饮 -n "午饭"` |
+| 📤 记收入 | `add -a 5000 -c 工资 -t income` |
+| 📋 查看账单 | `list --days 7` |
+| 📊 月统计+预算对比 | `summary --month 5` |
+| 🎯 设置预算 | `budget -c 餐饮 -a 2000` |
+| 🗑️ 删除/编辑 | `del 1` / `edit 1 -n "新备注"` |
+| 📤 导出CSV | `export` |
+
+## 🚀 快速开始
 
 ```bash
-# 记一笔支出
+# 下载
+git clone https://github.com/dipclawn/expense-tracker.git
+cd expense-tracker
+
+# 记一笔
 python3 expense.py add -a 25 -c 餐饮 -n "午饭"
 
-# 记一笔收入
-python3 expense.py add -a 5000 -c 工资 -t income -n "5月工资"
-
-# 查看今天账单
+# 查看本月账单
 python3 expense.py list
 
-# 查看本月统计
-python3 expense.py summary --month 5
-
-# 查看分类统计
-python3 expense.py categories
+# 查看统计
+python3 expense.py summary
 ```
 
-## 分类
+## 🏗️ 打包安装 (Android / PC)
 
-| 类型 | 默认分类 |
-|------|----------|
-| 支出 | 餐饮、交通、购物、娱乐、住房、医疗、教育、其他 |
-| 收入 | 工资、兼职、红包、投资、其他 |
+### 方式一：Python 直接运行（推荐）
 
-## 数据
+```bash
+python3 expense.py
+```
 
-数据保存在 `~/.expense-tracker/data.json`，纯 JSON 格式，安全可控。
+### 方式二：打包成 APK（Android）
+
+```bash
+# 需要 Python-for-Android / Buildozer 环境
+pip install buildozer cython
+buildozer android debug
+```
+
+### 方式三：打包成 EXE（Windows）
+
+```bash
+pip install pyinstaller
+pyinstaller --onefile expense.py
+```
+
+## 📱 Web 版
+
+浏览器也能用 → 在项目目录运行：
+```bash
+python3 -m http.server 8080
+```
+然后访问 http://localhost:8080/web/
+
+## 📂 数据
+
+存储在 `~/.expense-tracker/data.json`，纯 JSON 格式，可手动编辑或备份。
+
+## 📜 License
+
+MIT
